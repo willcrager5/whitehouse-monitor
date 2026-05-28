@@ -1,0 +1,40 @@
+name: White House Monitor
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour on the hour
+  workflow_dispatch:       # allow manual runs from the Actions tab
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Restores processed_orders.json from cache so we never re-post an order.
+      # restore-keys picks the latest matching cache if the exact key isn't found.
+      - name: Restore state
+        uses: actions/cache@v4
+        with:
+          path: processed_orders.json
+          key: processed-orders-${{ github.run_id }}
+          restore-keys: |
+            processed-orders-
+
+      - name: Run monitor
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: python main.py --once
