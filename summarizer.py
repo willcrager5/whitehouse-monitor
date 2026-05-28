@@ -85,7 +85,7 @@ def summarize_order(order: dict) -> str:
 
     message = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=1024,
+        max_tokens=2048,
         system=SYSTEM,
         messages=[{"role": "user", "content": prompt}],
     )
