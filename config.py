@@ -5,7 +5,8 @@ load_dotenv()
 
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
-SLACK_USER_ID = os.environ["SLACK_USER_ID"]
+SLACK_USER_IDS = [uid.strip() for uid in os.environ["SLACK_USER_ID"].split(",")]
+CUTOFF_DATE = "2026-05-15"
 NOTION_API_KEY = os.environ["NOTION_API_KEY"]
 NOTION_DATABASE_ID = os.environ["NOTION_DATABASE_ID"]
 

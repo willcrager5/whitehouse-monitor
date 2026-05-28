@@ -1,7 +1,18 @@
 import json
 import os
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 import feedparser
-from config import WH_RSS_URL, STATE_FILE
+from config import WH_RSS_URL, STATE_FILE, CUTOFF_DATE
+
+_CUTOFF = datetime.fromisoformat(CUTOFF_DATE).replace(tzinfo=timezone.utc)
+
+
+def _published_dt(entry) -> datetime | None:
+    try:
+        return parsedate_to_datetime(entry.get("published", ""))
+    except Exception:
+        return None
 
 
 def load_state() -> set:
@@ -24,6 +35,10 @@ def fetch_new_orders() -> tuple[list[dict], set]:
     for entry in feed.entries:
         entry_id = entry.get("id") or entry.get("link")
         if entry_id in seen:
+            continue
+
+        pub_dt = _published_dt(entry)
+        if pub_dt and pub_dt < _CUTOFF:
             continue
 
         content = ""
