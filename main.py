@@ -3,7 +3,7 @@ import sys
 import time
 
 from scraper import fetch_new_orders, save_state
-from summarizer import summarize_order
+from summarizer import is_relevant, summarize_order
 from notifier import post_to_slack, post_to_notion
 from config import POLL_INTERVAL_SECONDS
 
@@ -35,6 +35,11 @@ def run_once() -> None:
 
     for order in new_orders:
         try:
+            if not is_relevant(order):
+                log.info(f"Skipping (not relevant): {order['title']}")
+                seen.add(order["id"])
+                save_state(seen)
+                continue
             process_order(order)
             seen.add(order["id"])
             save_state(seen)

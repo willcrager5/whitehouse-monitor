@@ -33,6 +33,48 @@ Full text:
 """
 
 
+RELEVANT_TOPICS = [
+    "financial services",
+    "artificial intelligence",
+    "fintech",
+    "wealth management",
+    "asset management",
+    "banking",
+    "securities",
+    "investment",
+    "capital markets",
+]
+
+RELEVANCE_PROMPT = """\
+Does this presidential action materially affect any of these topics?
+- Financial services
+- Artificial intelligence
+- Fintech
+- Wealth management
+- Asset management
+
+Title: {title}
+
+Content: {content}
+
+Reply with a single word: YES or NO."""
+
+
+def is_relevant(order: dict) -> bool:
+    message = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=5,
+        messages=[{
+            "role": "user",
+            "content": RELEVANCE_PROMPT.format(
+                title=order["title"],
+                content=order["content"][:3000],
+            ),
+        }],
+    )
+    return message.content[0].text.strip().upper().startswith("YES")
+
+
 def summarize_order(order: dict) -> str:
     prompt = PROMPT_TEMPLATE.format(
         title=order["title"],
