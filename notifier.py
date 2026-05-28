@@ -1,6 +1,11 @@
 import requests
 from email.utils import parsedate_to_datetime
-from config import SLACK_WEBHOOK_URL, NOTION_API_KEY, NOTION_DATABASE_ID
+from config import SLACK_BOT_TOKEN, SLACK_USER_ID, NOTION_API_KEY, NOTION_DATABASE_ID
+
+SLACK_HEADERS = {
+    "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
+    "Content-Type": "application/json",
+}
 
 NOTION_HEADERS = {
     "Authorization": f"Bearer {NOTION_API_KEY}",
@@ -19,6 +24,7 @@ def _parse_iso_date(rss_date: str) -> str:
 
 def post_to_slack(order: dict, summary: str) -> None:
     payload = {
+        "channel": SLACK_USER_ID,
         "blocks": [
             {
                 "type": "header",
@@ -41,10 +47,18 @@ def post_to_slack(order: dict, summary: str) -> None:
                     }
                 ],
             },
-        ]
+        ],
     }
-    resp = requests.post(SLACK_WEBHOOK_URL, json=payload, timeout=10)
+    resp = requests.post(
+        "https://slack.com/api/chat.postMessage",
+        headers=SLACK_HEADERS,
+        json=payload,
+        timeout=10,
+    )
     resp.raise_for_status()
+    data = resp.json()
+    if not data.get("ok"):
+        raise RuntimeError(f"Slack API error: {data.get('error')}")
 
 
 def post_to_notion(order: dict, summary: str) -> None:
