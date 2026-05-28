@@ -60,6 +60,34 @@ def post_to_slack(order: dict, summary: str) -> None:
             raise RuntimeError(f"Slack API error for {user_id}: {data.get('error')}")
 
 
+def _to_notion_rich_text(line: str) -> list[dict]:
+    """Convert a line with *bold* spans into Notion rich_text segments."""
+    import re
+    segments = []
+    for i, part in enumerate(re.split(r"\*([^*]+)\*", line)):
+        if not part:
+            continue
+        segments.append({
+            "type": "text",
+            "text": {"content": part},
+            "annotations": {"bold": i % 2 == 1},
+        })
+    return segments or [{"type": "text", "text": {"content": line}}]
+
+
+def _summary_to_notion_blocks(summary: str) -> list[dict]:
+    """Convert the summary into Notion paragraph blocks, one per line."""
+    blocks = []
+    for line in summary.splitlines():
+        rich_text = _to_notion_rich_text(line)
+        blocks.append({
+            "object": "block",
+            "type": "paragraph",
+            "paragraph": {"rich_text": rich_text},
+        })
+    return blocks
+
+
 def post_to_notion(order: dict, summary: str) -> None:
     iso_date = _parse_iso_date(order["published"])
 
@@ -71,23 +99,10 @@ def post_to_notion(order: dict, summary: str) -> None:
     if iso_date:
         properties["Date"] = {"date": {"start": iso_date}}
 
-    # Notion blocks have a 2000-char limit per paragraph; chunk if needed
-    chunks = [summary[i : i + 2000] for i in range(0, len(summary), 2000)]
-    children = [
-        {
-            "object": "block",
-            "type": "paragraph",
-            "paragraph": {
-                "rich_text": [{"type": "text", "text": {"content": chunk}}]
-            },
-        }
-        for chunk in chunks
-    ]
-
     payload = {
         "parent": {"database_id": NOTION_DATABASE_ID},
         "properties": properties,
-        "children": children,
+        "children": _summary_to_notion_blocks(summary),
     }
 
     resp = requests.post(
