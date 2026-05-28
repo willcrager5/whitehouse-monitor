@@ -2,7 +2,7 @@ name: White House Monitor
 
 on:
   schedule:
-    - cron: '0 9 * * *'  # every day at 9am UTC (5am ET)
+    - cron: '0 14 * * 1-5'  # 9am ET (14:00 UTC) weekdays only — note: no DST adjustment
   workflow_dispatch:       # allow manual runs from the Actions tab
 
 jobs:
