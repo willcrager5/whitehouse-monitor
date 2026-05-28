@@ -9,23 +9,24 @@ SYSTEM = (
 )
 
 PROMPT_TEMPLATE = """\
-Summarize this presidential action using exactly this format:
+Summarize this presidential action using exactly this format.
+Use Slack formatting: *bold* for labels (single asterisk), not markdown **bold**.
 
-**Title:** {title}
-**Date:** {published}
-**Type:** [Executive Order / Presidential Memorandum / Proclamation / other]
+*Title:* {title}
+*Date:* {published}
+*Type:* [Executive Order / Presidential Memorandum / Proclamation / other]
 
-**Summary:** [2-3 sentence plain-English summary of what this does]
+*Summary:* [2-3 sentence plain-English summary of what this does]
 
-**Key Provisions:**
+*Key Provisions:*
 - [provision]
 - [provision]
 - [provision]
 
-**Affected Agencies / Departments:**
+*Affected Agencies / Departments:*
 - [agency]
 
-**Key Implications:**
+*Key Implications:*
 [2-3 sentences on practical impact — who is affected and how]
 
 Full text:
